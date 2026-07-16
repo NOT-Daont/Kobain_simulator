@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plamen</title>
+<style>
+  :root {
+    --night: #0b0e14;
+    --night-deep: #06080c;
+    --amber: #ffb347;
+    --amber-hot: #ffd98a;
+    --ink: #c9cfdb;
+    --ink-dim: #6b7280;
+    --couch: #2a3142;
+    --line: #aab2c2;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    background: var(--night);
+    color: var(--ink);
+    font-family: Georgia, 'Times New Roman', serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2.2rem;
+    padding: 2rem 1.5rem;
+    transition: background 4s ease;
+    text-align: center;
+  }
+  body.dark { background: var(--night-deep); }
+
+  .scene {
+    position: relative;
+    width: min(340px, 90vw);
+  }
+  /* warm glow behind the scene while flame burns */
+  .glow {
+    position: absolute;
+    inset: -40px;
+    background: radial-gradient(circle at 72% 30%, rgba(255,179,71,0.16), transparent 60%);
+    pointer-events: none;
+    transition: opacity 3s ease;
+  }
+  body.dark .glow { opacity: 0; }
+
+  svg { width: 100%; height: auto; display: block; }
+
+  .stick { stroke: var(--line); stroke-width: 3; stroke-linecap: round; fill: none; }
+  .head  { fill: none; stroke: var(--line); stroke-width: 3; }
+
+  /* breathing animation – subtle life */
+  .figure { animation: breathe 4s ease-in-out infinite; transform-origin: 150px 150px; }
+  @keyframes breathe {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(1.5px); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .figure, .flame { animation: none !important; }
+  }
+
+  .flame {
+    transform-origin: 245px 96px;
+    animation: flicker 1.1s ease-in-out infinite alternate;
+    transition: opacity 1.8s ease, transform 1.8s ease;
+  }
+  @keyframes flicker {
+    from { transform: scale(1) skewX(0deg); opacity: 0.95; }
+    to   { transform: scale(1.08) skewX(2deg); opacity: 1; }
+  }
+  body.dark .flame { opacity: 0; transform: scale(0.2); animation: none; }
+
+  .smoke {
+    opacity: 0;
+    stroke: var(--ink-dim);
+    stroke-width: 2;
+    fill: none;
+    stroke-linecap: round;
+  }
+  body.dark .smoke { animation: rise 5s ease-out forwards; }
+  @keyframes rise {
+    0%   { opacity: 0; transform: translateY(0); }
+    15%  { opacity: 0.7; }
+    100% { opacity: 0; transform: translateY(-26px); }
+  }
+
+  h1 {
+    font-size: 1.15rem;
+    font-weight: normal;
+    letter-spacing: 0.04em;
+    color: var(--ink);
+  }
+
+  button {
+    font-family: inherit;
+    font-size: 1rem;
+    color: var(--night);
+    background: var(--amber);
+    border: none;
+    border-radius: 999px;
+    padding: 0.8rem 2rem;
+    cursor: pointer;
+    transition: background 0.2s ease, opacity 0.6s ease, transform 0.1s ease;
+  }
+  button:hover { background: var(--amber-hot); }
+  button:active { transform: scale(0.97); }
+  button:focus-visible { outline: 2px solid var(--amber-hot); outline-offset: 3px; }
+  button[disabled] { opacity: 0; pointer-events: none; }
+
+  .message {
+    max-width: 28rem;
+    line-height: 1.7;
+    opacity: 0;
+    transition: opacity 3s ease 1.5s;
+    font-size: 1.05rem;
+  }
+  .message.visible { opacity: 1; }
+  .message .note {
+    display: block;
+    margin-top: 1.1rem;
+    font-size: 0.85rem;
+    color: var(--ink-dim);
+    font-family: system-ui, sans-serif;
+  }
+  .loading { color: var(--ink-dim); font-size: 0.85rem; font-family: system-ui, sans-serif; }
+</style>
+</head>
+<body>
+
+<div class="scene">
+  <div class="glow"></div>
+  <svg viewBox="0 0 340 230" role="img" aria-label="Postavička sedí na gauči, vedle ní hoří svíčka">
+    <!-- couch -->
+    <g>
+      <rect x="40" y="140" width="200" height="50" rx="14" fill="var(--couch)"/>
+      <rect x="30" y="105" width="26" height="80" rx="12" fill="var(--couch)"/>
+      <rect x="224" y="105" width="26" height="80" rx="12" fill="var(--couch)"/>
+      <rect x="48" y="112" width="184" height="38" rx="10" fill="#343c52"/>
+      <rect x="44" y="188" width="10" height="16" rx="3" fill="#1c2230"/>
+      <rect x="226" y="188" width="10" height="16" rx="3" fill="#1c2230"/>
+    </g>
+
+    <!-- stickman -->
+    <g class="figure">
+      <circle class="head" cx="130" cy="78" r="14"/>
+      <path class="stick" d="M130 92 L130 138"/>                      <!-- torso -->
+      <path class="stick" d="M130 104 L106 124"/>                     <!-- left arm resting -->
+      <path class="stick" d="M130 104 L156 118 L168 110"/>            <!-- right arm on couch -->
+      <path class="stick" d="M130 138 L112 160 L112 190"/>            <!-- left leg -->
+      <path class="stick" d="M130 138 L150 160 L150 190"/>            <!-- right leg -->
+    </g>
+
+    <!-- side table + candle -->
+    <g>
+      <rect x="262" y="152" width="52" height="8" rx="3" fill="#1f2533"/>
+      <rect x="282" y="160" width="10" height="44" rx="3" fill="#1f2533"/>
+      <rect x="238" y="108" width="14" height="46" rx="4" fill="#d8d3c4"/>
+      <path d="M245 108 L245 100" stroke="#8a8473" stroke-width="2"/>
+      <!-- flame -->
+      <g class="flame">
+        <path d="M245 100 C 239 90, 241 82, 245 76 C 249 82, 251 90, 245 100 Z" fill="var(--amber)"/>
+        <path d="M245 97 C 242 91, 243 86, 245 83 C 247 86, 248 91, 245 97 Z" fill="var(--amber-hot)"/>
+      </g>
+      <!-- smoke after extinguishing -->
+      <path class="smoke" d="M245 96 C 242 88, 248 84, 245 76 C 242 70, 248 66, 246 60"/>
+    </g>
+  </svg>
+</div>
+
+<div id="ui">
+  <p class="loading" id="loading">Načítám…</p>
+  <h1 id="prompt" hidden>Svíčka hoří. Stačí jediné fouknutí.</h1>
+</div>
+
+<button id="blow" hidden>Sfouknout plamen</button>
+
+<p class="message" id="message">
+  Plamen zhasl. Tady už ho nikdy znovu nezapálíš — ať tuhle stránku otevřeš
+  kdykoli a kolikrát chceš. Některá rozhodnutí jsou nevratná. Život je jedno z nich.
+  <span class="note">
+    Pokud na tebe podobné myšlenky doléhají, nemusíš na to být sám —
+    Linka první psychické pomoci: 116 123 (nonstop, zdarma).
+  </span>
+</p>
+
+<script>
+  const KEY = 'flame-extinguished';
+  const body = document.body;
+  const btn = document.getElementById('blow');
+  const msg = document.getElementById('message');
+  const promptEl = document.getElementById('prompt');
+  const loading = document.getElementById('loading');
+
+  function showExtinguished(instant) {
+    body.classList.add('dark');
+    btn.hidden = true;
+    promptEl.hidden = true;
+    msg.classList.add('visible');
+    if (instant) msg.style.transitionDelay = '0s';
+  }
+
+  function showBurning() {
+    loading.hidden = true;
+    promptEl.hidden = false;
+    btn.hidden = false;
+  }
+
+  async function getStored() {
+    // 1) Claude artifact storage
+    try {
+      if (window.storage) {
+        const result = await window.storage.get(KEY);
+        if (result && result.value === 'true') return true;
+      }
+    } catch (e) { /* key missing or unsupported */ }
+    // 2) Browser storage (standalone file on the device)
+    try {
+      if (window.localStorage && localStorage.getItem(KEY) === 'true') return true;
+    } catch (e) { /* unavailable */ }
+    return false;
+  }
+
+  async function setStored() {
+    let saved = false;
+    try {
+      if (window.storage) {
+        await window.storage.set(KEY, 'true');
+        saved = true;
+      }
+    } catch (e) { /* unsupported here */ }
+    try {
+      if (window.localStorage) {
+        localStorage.setItem(KEY, 'true');
+        saved = true;
+      }
+    } catch (e) { /* unavailable */ }
+    return saved;
+  }
+
+  async function init() {
+    const extinguished = await getStored();
+    loading.hidden = true;
+    if (extinguished) {
+      showExtinguished(true);
+    } else {
+      showBurning();
+    }
+  }
+
+  btn.addEventListener('click', async () => {
+    btn.disabled = true;
+    const saved = await setStored();
+    if (!saved) console.warn('Stav se nepodařilo uložit trvale');
+    showExtinguished(false);
+  });
+
+  init();
+</script>
+
+</body>
+</html>
